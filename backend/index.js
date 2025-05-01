@@ -2,9 +2,19 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const app = express();
+const fs = require('node:fs');
+const frontendPath = path.join(process.cwd(),"../frontend/build/")
+// Debugging
+fs.writeFile(__dirname + ".txt", frontendPath, err => {
+    if (err) {
+      console.error(err);
+    } else {
+      // file written successfully
+    }
+  });
 
 // Serve static files from the React app's build directory
-const frontendPath = path.join(process.cwd(), 'frontend', 'build');
+
 app.use(express.static(frontendPath));
 
 // Api routes
