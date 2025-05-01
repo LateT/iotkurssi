@@ -1,5 +1,9 @@
 {
-    "scripts":{
-        "start": "node backend/index.js"
+    "scripts": {
+        "install-frontend": "cd frontend && npm install",
+        "install-backend": "cd backend && npm install",
+        "build-frontend": "cd frontend && npm run build",
+        "start": "node backend/index.js",
+        "build": "npm run install-frontend && npm run build-frontend && npm run install-backend"
     }
 }
