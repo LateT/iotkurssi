@@ -4,7 +4,7 @@ const path = require('path');
 const app = express();
 
 // Serve static files from the React app's build directory
-const frontendPath = path.join(process.cwd(), 'frontend/build');
+const frontendPath = path.join(process.cwd(),"../frontend/build/")
 app.use(express.static(frontendPath));
 
 // Api routes
