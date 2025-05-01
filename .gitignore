@@ -1,0 +1,26 @@
+# Root-level
+node_modules/
+.env
+.DS_Store
+*.log
+
+# Backend
+/backend/node_modules/
+backend/.env
+backend/*.log
+
+# Frontend
+/frontend/node_modules/
+frontend/.env
+frontend/build/
+frontend/.next/
+frontend/.cache/
+
+# IDEs and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS-specific
+Thumbs.db
