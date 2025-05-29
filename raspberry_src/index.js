@@ -1,6 +1,6 @@
 const WebSocket = require('ws');
 
-const WS_URL = 'ws://localhost:3000';
+const WS_URL = 'wss://iotserver-akf8hwcae6ggg5af.swedencentral-01.azurewebsites.net';
 
 let ws;
 let isConnected = false;
