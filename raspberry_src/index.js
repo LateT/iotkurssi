@@ -1,4 +1,5 @@
 const WebSocket = require('ws');
+const fs = require('fs');
 require('dotenv').config();
 const WS_URL = 'wss://iotserver-akf8hwcae6ggg5af.swedencentral-01.azurewebsites.net?token=' + process.env.TOKEN;
 //const WS_URL = 'ws://localhost:3000?token=' + process.env.TOKEN;
@@ -7,8 +8,15 @@ let ws;
 let isConnected = false;
 const messageBuffer = [];
 
+const StoreMsg = (message) => {
+  // Append each message as a JSON line
+  fs.appendFile('sensor_data.log', JSON.stringify(message) + '\n', (err) => {
+    if (err) console.error('Cold storage error:', err);
+  });
+}
 
 function sendMessage(message) {
+  StoreMsg(message);
   const json = JSON.stringify(message);
 
   if (isConnected && ws.readyState === WebSocket.OPEN) {
