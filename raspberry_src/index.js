@@ -50,6 +50,7 @@ connect();
 
 // Send emulated sensor data every second
 setInterval(() => {
+  // Do not change the order of values in the object !!
   const data = {
     deviceId: 'Raspberry Pi Web Client',
     temperature: 0 + Math.random() * 35, // 0 - 35 C
