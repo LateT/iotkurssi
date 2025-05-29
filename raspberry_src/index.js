@@ -1,7 +1,7 @@
 const WebSocket = require('ws');
 
 const WS_URL = 'wss://iotserver-akf8hwcae6ggg5af.swedencentral-01.azurewebsites.net';
-
+//const WS_URL = 'ws://localhost:3000';
 let ws;
 let isConnected = false;
 const messageBuffer = [];
@@ -54,7 +54,6 @@ setInterval(() => {
     deviceId: 'Raspberry Pi Web Client',
     temperature: 0 + Math.random() * 35, // 0 - 35 C
     humidity: 40 + Math.random() * 30, // 40-70 %
-    timestamp: Date.now()
   };
 
   sendMessage(data);
