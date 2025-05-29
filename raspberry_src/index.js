@@ -1,7 +1,8 @@
 const WebSocket = require('ws');
-
-const WS_URL = 'wss://iotserver-akf8hwcae6ggg5af.swedencentral-01.azurewebsites.net';
-//const WS_URL = 'ws://localhost:3000';
+require('dotenv').config();
+const WS_URL = 'wss://iotserver-akf8hwcae6ggg5af.swedencentral-01.azurewebsites.net?token=' + process.env.TOKEN;
+//const WS_URL = 'ws://localhost:3000?token=' + process.env.TOKEN;
+console.log(WS_URL);
 let ws;
 let isConnected = false;
 const messageBuffer = [];

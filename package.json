@@ -7,6 +7,7 @@
         "build": "npm run install-frontend && npm run build-frontend && npm run install-backend"
     },
     "dependencies": {
+        "dotenv": "^16.5.0",
         "ws": "^8.18.2"
     }
 }
