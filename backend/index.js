@@ -3,7 +3,7 @@ const express = require('express');
 const path = require('path');
 const http = require('http');
 const WebSocket = require('ws');
-
+const { InsertMsgToDB } = require('./dbqueries');
 const app = express();
 
 // Serve static files from the React app's build directory
@@ -30,8 +30,26 @@ const wss = new WebSocket.Server({ server });
 wss.on('connection', (ws) => {
     console.log('WebSocket client connected');
 
-    ws.on('message', (message) => {
+    ws.on('message', async (message) => {
         console.log('Received from client:', message.toString());
+        let data;
+        try {
+            data = JSON.parse(message);
+        } catch (e) {
+            console.log("Invalid JSON: ", message.toString());
+            return;
+        }
+        if (isValidSensorMessage(data)) {
+            console.log('Valid message:', data);
+            // Process valid message
+            const result = await InsertMsgToDB(data);
+            if (result.error) {
+                console.error(result.message);
+            }
+
+        } else {
+            console.log('Invalid message types:', data);
+        }
     });
 
     ws.on('close', () => {
@@ -44,3 +62,16 @@ const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
+
+
+// Functions
+
+function isValidSensorMessage(msg) {
+    // Check if all required fields exist and have correct types
+    return (
+        typeof msg === 'object' &&
+        typeof msg.deviceId === 'string' &&
+        typeof msg.temperature === 'number' &&
+        typeof msg.humidity === 'number'
+    );
+}
