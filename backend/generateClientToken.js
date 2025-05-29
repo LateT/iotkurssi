@@ -5,7 +5,7 @@ const payload = {
 };
 
 const token = jwt.sign(payload, process.env.JWTSECRET, {
-  expiresIn: '7d', // token valid for 7 days
+  expiresIn: '60d', // token valid for 60 days
 });
 
 console.log("token:", token);
