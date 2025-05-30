@@ -61,7 +61,7 @@ connect();
 setInterval(() => {
   // Do not change the order of values in the object !!
   const data = {
-    deviceId: 'Raspberry Pi Web Client',
+    deviceId: 'RaspberryPiWebClient',
     temperature: 0 + Math.random() * 35, // 0 - 35 C
     humidity: 40 + Math.random() * 30, // 40-70 %
   };
