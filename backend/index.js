@@ -5,33 +5,98 @@ const http = require('http');
 const WebSocket = require('ws');
 const jwt = require('jsonwebtoken');
 const url = require('url');
-const { InsertMsgToDB } = require('./dbqueries');
 const app = express();
+const { InsertMsgToDB, GetDeviceInsights } = require('./dbqueries');
 
 // Serve static files from the React app's build directory
 const frontendPath = path.join(__dirname, "../frontend/build/");
 app.use(express.static(frontendPath));
 
-// API route
+// Tämä on tärkeä, jotta express osaa käsitellä JSON-bodyt POST-pyynnöissä
+app.use(express.json());
+
+// API route (esim. testaus)
 app.get("/test", (req, res) => {
     return res.json({ error: false });
 });
 
-// Catch-all to serve React app
+// POST endpoint laitetietojen vastaanottoon
+app.post('/api/devices/:id/data', async (req, res) => {
+    const deviceId = req.params.id;
+    const data = req.body;
+
+    const authHeader = req.headers['authorization'];
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: true, message: 'Missing or invalid Authorization header' });
+    }
+    const token = authHeader.substring(7);
+
+    try {
+        jwt.verify(token, process.env.JWTSECRET);
+    } catch (err) {
+        return res.status(401).json({ error: true, message: 'Invalid token' });
+    }
+
+    if (typeof data.temperature !== 'number' || typeof data.humidity !== 'number') {
+        return res.status(400).json({ error: true, message: 'Invalid data format' });
+    }
+
+    // Varmistetaan, että deviceId tulee URL:stä
+    data.deviceId = deviceId;
+
+    try {
+        const result = await InsertMsgToDB(data);
+        if (result.error) {
+            return res.status(500).json({ error: true, message: 'Database error' });
+        }
+        return res.json({ error: false, message: 'Data inserted successfully' });
+    } catch (e) {
+        return res.status(500).json({ error: true, message: e.message });
+    }
+});
+
+// GET endpoint device insights -tietojen hakemiseen
+app.get('/api/devices/:id/insights', async (req, res) => {
+    console.log('API /api/devices/:id/insights called');
+    const deviceId = req.params.id;
+    const authHeader = req.headers['authorization'];
+    console.log('Authorization header:', authHeader);
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        console.log('Missing or invalid Authorization header');
+        return res.status(401).json({ error: true, message: 'Missing or invalid Authorization header' });
+    }
+
+    const token = authHeader.substring(7);
+    try {
+        const decoded = jwt.verify(token, process.env.JWTSECRET);
+        console.log("Token decoded:", decoded);
+
+        const insights = await GetDeviceInsights(deviceId);
+        if (insights.error) {
+            return res.status(404).json(insights);
+        }
+        return res.json({ error: false, data: insights.data });
+    } catch (err) {
+        console.log('Invalid token:', err);
+        return res.status(401).json({ error: true, message: 'Invalid token' });
+    }
+});
+
+// Catch-all to serve React app - tämän pitää olla viimeisenä reittinä
 app.get("*", (req, res) => {
     res.sendFile(path.join(frontendPath, "index.html"));
 });
 
-// Create HTTP server manually
+// Luo HTTP-serveri
 const server = http.createServer(app);
 
-// Attach WebSocket server to HTTP server
+// WebSocket-serverin liittäminen HTTP-serveriin
 const wss = new WebSocket.Server({ server });
 
-// Handle WebSocket connections
+// WebSocket-yhteyksien käsittely
 wss.on('connection', (ws, req) => {
 
-    // Authentication using JWT tokens
     const params = url.parse(req.url, true);
     const token = params.query.token;
 
@@ -43,7 +108,7 @@ wss.on('connection', (ws, req) => {
     try {
         const decoded = jwt.verify(token, process.env.JWTSECRET);
         console.log("Authenticated user connected:", decoded);
-        // Authenticated
+
         ws.on('message', async (message) => {
             console.log('Received from client:', message.toString());
             let data;
@@ -55,12 +120,10 @@ wss.on('connection', (ws, req) => {
             }
             if (isValidSensorMessage(data)) {
                 console.log('Valid message:', data);
-                // Process valid message
                 const result = await InsertMsgToDB(data);
                 if (result.error) {
                     console.error(result.message);
                 }
-
             } else {
                 console.log('Invalid message types:', data);
             }
@@ -72,21 +135,16 @@ wss.on('connection', (ws, req) => {
     } catch (err) {
         ws.close(1008, "Invalid token");
     }
-
-
 });
 
-// Start server
+// Portin käynnistys
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
 
-
-// Functions
-
+// Validointi JSON-viestille WebSocketilta
 function isValidSensorMessage(msg) {
-    // Check if all required fields exist and have correct types
     return (
         typeof msg === 'object' &&
         typeof msg.deviceId === 'string' &&
